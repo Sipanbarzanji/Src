@@ -6,7 +6,7 @@ class create_and_update(models.Model):
 class workspace(create_and_update):
     name=models.CharField( max_length=50)
     description=models.TextField()
-    owner=models.ForeignKey(User,related_name="workspace", on_delete=models.CASCADE)
+    owner=models.ForeignKey(User,related_name="workspaces_owner", on_delete=models.CASCADE)
 Role=[
     ("OW","owner"),
     ("AD","admin"),
@@ -16,7 +16,12 @@ class workspace_members(models.Model):
     user=models.ForeignKey(User,related_name="workspace_member", on_delete=models.CASCADE)
     worlspace=models.ForeignKey(workspace,related_name="workspace_member", on_delete=models.CASCADE)
     joined_at=models.DateTimeField(auto_now_add=True)
-    role=models.CharField( max_length=2,choices=Role,default=("Mb","member"))
+    role=models.CharField( max_length=2,choices=Role,default="Mb")
+    class Meta:
+        constraints=[
+            models.UniqueConstraint(fields=["user","workspace"],
+                                    name="unique_user_in_workspace")
+        ]
 PROJECT_STATUS=[
     ("pn","planing"),
     ("ac","acting"),
@@ -24,7 +29,7 @@ PROJECT_STATUS=[
 ]
 class project(create_and_update):
     name=models.CharField( max_length=50)
-    workspace=models.ForeignKey(workspace,related_name="workspace",on_delete=models.CASCADE)
+    workspace=models.ForeignKey(workspace,related_name="projects",on_delete=models.CASCADE)
     description=models.TextField()
     create_by=models.ForeignKey(User,related_name="projects_created", on_delete=models.CASCADE)
     status=models.CharField(max_length=2,choices=PROJECT_STATUS)
@@ -55,6 +60,7 @@ class comment(create_and_update):
 class files(create_and_update):
     task=models.ForeignKey(tasks, related_name="files", on_delete=models.CASCADE)
     file=models.FileField(upload_to="upload/")
+    uploaded_by=models.ForeignKey(User,related_name="files_uploaded", on_delete=models.CASCADE)
     
 label_name=[
     ("bg","bug"),
@@ -76,7 +82,7 @@ class notifaction(create_and_update):
     to_user=models.ForeignKey(User, related_name="notif_recieved", on_delete=models.CASCADE)
     by_user=models.ForeignKey(User, related_name="message_send", on_delete=models.CASCADE)
     message=models.TextField(max_length=150)
-    is_read=models.BooleanField()
+    is_read=models.BooleanField(default=False)
     
     
     
