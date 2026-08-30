@@ -3,7 +3,11 @@ from django.contrib.auth.models import User
 class create_and_update(models.Model):
     create_at=models.DateTimeField( auto_now_add=True)
     update_at=models.DateTimeField( auto_now=True)
+    class Meta:
+        abstract=True
 class workspace(create_and_update):
+    class Meta:
+        db_table="workspace"
     name=models.CharField( max_length=50)
     description=models.TextField()
     owner=models.ForeignKey(User,related_name="workspaces_owner", on_delete=models.CASCADE)
@@ -14,10 +18,11 @@ Role=[
 ]
 class workspace_members(models.Model):
     user=models.ForeignKey(User,related_name="workspace_member", on_delete=models.CASCADE)
-    worlspace=models.ForeignKey(workspace,related_name="workspace_member", on_delete=models.CASCADE)
+    workspace=models.ForeignKey(workspace,related_name="workspace_member", on_delete=models.CASCADE)
     joined_at=models.DateTimeField(auto_now_add=True)
     role=models.CharField( max_length=2,choices=Role,default="Mb")
     class Meta:
+        db_table="workspace_members"
         constraints=[
             models.UniqueConstraint(fields=["user","workspace"],
                                     name="unique_user_in_workspace")
@@ -28,6 +33,8 @@ PROJECT_STATUS=[
     ("cp","complete")
 ]
 class project(create_and_update):
+    class Meta:
+        db_table="project"
     name=models.CharField( max_length=50)
     workspace=models.ForeignKey(workspace,related_name="projects",on_delete=models.CASCADE)
     description=models.TextField()
@@ -45,6 +52,8 @@ task_priority=[("lw","low"),
              ("nc","neccery")  
                ]
 class tasks(create_and_update):
+    class Meta:
+        db_table="tasks"
     title=models.CharField( max_length=50)
     description=models.TextField()
     project=models.ForeignKey(project,related_name="tasks", on_delete=models.CASCADE)
@@ -53,11 +62,10 @@ class tasks(create_and_update):
     status=models.CharField( max_length=2,choices=task_status)
     priority=models.CharField( max_length=2,choices=task_priority)
     deadline=models.DateTimeField()
-class comment(create_and_update):
-    task=models.ForeignKey(tasks, related_name="comments", on_delete=models.CASCADE)
-    user=models.ForeignKey(User, related_name="comments", on_delete=models.CASCADE)
-    content=models.TextField(max_length=150)
+
 class files(create_and_update):
+    class Meta:
+        db_table="files"
     task=models.ForeignKey(tasks, related_name="files", on_delete=models.CASCADE)
     file=models.FileField(upload_to="upload/")
     uploaded_by=models.ForeignKey(User,related_name="files_uploaded", on_delete=models.CASCADE)
@@ -67,22 +75,13 @@ label_name=[
     ("fe","feature"),
     ("bk","backend"),
     ("fn","fronted"),
-    ("ur","urgent")
+    ("ur","urgent"),
     ("db","database")
 ]
 class label(models.Model):
+    class Meta:
+        db_table="label"
     name=models.CharField( max_length=2,choices=label_name)
     task_table=models.ManyToManyField(tasks, related_name="labels")
-class logs(create_and_update):
-    update_at=None
-    user=models.ForeignKey(User, related_name="logs", on_delete=models.CASCADE)
-    action=models.TextField()
-class notifaction(create_and_update):
-    update_at=None
-    to_user=models.ForeignKey(User, related_name="notif_recieved", on_delete=models.CASCADE)
-    by_user=models.ForeignKey(User, related_name="message_send", on_delete=models.CASCADE)
-    message=models.TextField(max_length=150)
-    is_read=models.BooleanField(default=False)
-    
-    
+
     
