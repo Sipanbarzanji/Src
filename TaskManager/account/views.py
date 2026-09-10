@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm,AuthenticationForm
 from django.contrib.auth import login as Login
 from django.contrib import messages
-from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
 
 def signin(request):
     if request.user.is_authenticated:
@@ -13,7 +13,7 @@ def signin(request):
         if form.is_valid():
             user=form.save()
             Login(request,user)
-            return redirect("home")  
+            return redirect(profile)  
         else:
             messages.error(request, "خطا در ثبت‌نام. لطفاً دوباره تلاش کنید.")
     else:
@@ -25,12 +25,14 @@ def login(request):
         if form.is_valid():
             user=form.get_user()    
             Login(request,user)
-            return redirect("home")
+            return redirect(profile)
         else:
             messages.error(request, "خطا در ورود. لطفاً دوباره تلاش کنید.")
     else:
             form=AuthenticationForm()
     return render(request,"account/login.html",{"form":form})
-def home(request):
-    return HttpResponse("HOME")            
+@login_required
+def profile(request):
+    return render(request,"account/profile.html",{"user":request.user})
+
 # Create your views here.
