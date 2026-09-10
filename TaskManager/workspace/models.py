@@ -83,5 +83,7 @@ class label(models.Model):
         db_table="label"
     name=models.CharField( max_length=2,choices=label_name)
     task_table=models.ManyToManyField(tasks, related_name="labels")
+    def __str__(self):
+        return self.name
 
     
