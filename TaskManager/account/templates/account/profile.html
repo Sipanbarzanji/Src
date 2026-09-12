@@ -1,13 +1,175 @@
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>profile</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: Tahoma, sans-serif;
+        }
+
+        /* خط افقی وسط صفحه */
+        .line-horizontal {
+            position: fixed;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #333;
+            transform: translateY(-50%);
+            z-index: 10;
+        }
+
+        /* خط عمودی وسط صفحه */
+        .line-vertical {
+            position: fixed;
+            left: 50%;
+            top: 0;
+            width: 2px;
+            height: 100%;
+            background-color: #333;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+
+        /* ظرف نگهدارنده چهار قسمت */
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .quadrant {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            font-size: 24px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .q1 {
+            background-color: #f8d7da;
+        }
+
+        /* بالا راست */
+        .q2 {
+            background-color: #d1ecf1;
+        }
+
+        /* بالا چپ */
+        .q3 {
+            background-color: #d4edda;
+        }
+
+        /* پایین راست */
+        .q4 {
+            background-color: #fff3cd;
+        }
+
+        /* پایین چپ */
+    </style>
 </head>
 
 <body>
-    {{user.username}}
+
+    <div class="container">
+        <div class="quadrant q1">
+            <div>
+                <b>account info</b>
+                <br>
+                <p>username:{{user.username}}</p>
+            </div>
+        </div>
+        <div class="quadrant q2">
+            <p>
+                your workapces
+            </p>
+
+
+            {% if user.workspaces_owner.exists %}
+            <ul>
+                {% for w in user.workspaces_owner.all%}
+                <li> {{w.name}}</li>
+
+                {% endfor %}
+            </ul>
+            {% else %}
+            you dont own a workspace
+            {% endif %}
+            <br>
+            workspaces your in:
+            {% for wm in user.workspace_member.all %}
+            <ul>
+                <li>{{ wm.workspace.name }}</li>
+            </ul>
+            {% empty %}
+            <li>you are not in any workspace</li>
+            {% endfor %}
+
+        </div>
+
+        <div class="quadrant q3">
+            <p>
+                your projects
+            </p>
+
+            {% for wm in user.workspace_member.all %}
+            {% with projects=wm.workspace.projects.all %}
+            {% if projects %}
+            <ul>
+                {% for p in projects %}
+                <li>{{ p.name }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <li>you are not joined to any projects</li>
+            {% endif %}
+            {% endwith %}
+            {% empty %}
+            <li>you are not a member of any workspace</li>
+            {% endfor %}
+        </div>
+        <div class="quadrant q4">
+            <p>
+                your tasks
+            </p>
+
+            {% with tasks=user.tasks.all %}
+            {% if tasks %}
+            <ul>
+                {% for t in tasks %}
+                <li> {{t.title}}</li>
+
+                {% endfor %}
+            </ul>
+            {% else %}
+            you dont have any tasks
+            {% endif %}
+            {% endwith %}
+
+
+        </div>
+    </div>
+
+
+    <div class="line-horizontal"></div>
+    <div class="line-vertical"></div>
 
 </body>
 
