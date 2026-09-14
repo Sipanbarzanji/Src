@@ -93,7 +93,19 @@
             <div>
                 <b>account info</b>
                 <br>
+
                 <p>username:{{user.username}}</p>
+                workspaces:{{user.workspace_member.count}}
+                <br>
+                projects:{{projects_count}}
+                <br>
+                all tasks:{{user.tasks.all.count}}
+                <br>
+                tasks done:{{done_tasks}}
+                <br>
+                tasks todo:{{ tasks_todo }}
+                <br>
+                <a href="{% url 'editprofile' %}">edit profile</a>
             </div>
         </div>
         <div class="quadrant q2">
