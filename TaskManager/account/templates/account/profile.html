@@ -126,14 +126,14 @@
             {% endif %}
             <br>
             workspaces your in:
-            {% for wm in user.workspace_member.all %}
+            {% for wm in user.workspace_member.all|slice:":3" %}
             <ul>
                 <li>{{ wm.workspace.name }}</li>
             </ul>
             {% empty %}
             <li>you are not in any workspace</li>
             {% endfor %}
-
+            <a href="">click for workspace page</a>
         </div>
 
         <div class="quadrant q3">
