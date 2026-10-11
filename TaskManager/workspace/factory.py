@@ -1,10 +1,11 @@
-# imports
+import random
 import factory
-from factory.django import DjangoModelFactory
+
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.utils import timezone
 from datetime import timedelta
-from random import choice, randint, sample
+from factory.django import DjangoModelFactory
 
 from .models import (
     workspace,
@@ -13,12 +14,20 @@ from .models import (
     tasks,
     label,
 )
+
+
+# =========================================================
+# FACTORIES
+# =========================================================
+
 class UserFactory(DjangoModelFactory):
 
     class Meta:
         model = User
 
-    username = factory.Sequence(lambda n: f"user{n}")
+    username = factory.Sequence(
+        lambda n: f"user{n}"
+    )
 
     first_name = factory.Faker("first_name")
 
@@ -48,7 +57,8 @@ class WorkspaceFactory(DjangoModelFactory):
         max_nb_chars=150
     )
 
-    owner = factory.SubFactory(UserFactory)
+    # owner را موقع ساخت حتماً می‌دهیم
+    owner = None
 
 
 class WorkspaceMemberFactory(DjangoModelFactory):
@@ -56,17 +66,9 @@ class WorkspaceMemberFactory(DjangoModelFactory):
     class Meta:
         model = workspace_members
 
-    workspace = factory.SubFactory(
-        WorkspaceFactory
-    )
-
-    user = factory.SubFactory(
-        UserFactory
-    )
-
-    role = factory.LazyFunction(
-        lambda: choice(["OW", "AD", "Mb"])
-    )
+    workspace = None
+    user = None
+    role = "Mb"
 
 
 class ProjectFactory(DjangoModelFactory):
@@ -83,16 +85,15 @@ class ProjectFactory(DjangoModelFactory):
         max_nb_chars=150
     )
 
-    workspace = factory.SubFactory(
-        WorkspaceFactory
-    )
-
-    create_by = factory.SubFactory(
-        UserFactory
-    )
+    workspace = None
+    create_by = None
 
     status = factory.LazyFunction(
-        lambda: choice(["pn", "ac", "cp"])
+        lambda: random.choice([
+            "pn",
+            "ac",
+            "cp",
+        ])
     )
 
 
@@ -110,169 +111,278 @@ class TaskFactory(DjangoModelFactory):
         max_nb_chars=150
     )
 
-    project = factory.SubFactory(
-        ProjectFactory
-    )
-
-    assign = factory.SubFactory(
-        UserFactory
-    )
-
-    create_by = factory.SubFactory(
-        UserFactory
-    )
+    project = None
+    assign = None
+    create_by = None
 
     status = factory.LazyFunction(
-        lambda: choice(["td", "ip", "rw", "dn"])
+        lambda: random.choice([
+            "td",
+            "ip",
+            "rw",
+            "dn",
+        ])
     )
 
     priority = factory.LazyFunction(
-        lambda: choice(["lw", "md", "hg", "nc"])
+        lambda: random.choice([
+            "lw",
+            "md",
+            "hg",
+            "nc",
+        ])
     )
 
-    deadline = factory.Faker(
-        "date_time"
+    deadline = factory.LazyFunction(
+        lambda: timezone.now()
+        + timedelta(days=random.randint(1, 30))
     )
+
 
 LABEL_CHOICES = [
-        "bg",
-        "fe",
-        "bk",
-        "fn",
-        "ur",
-        "db",
-    ]
+    "bg",
+    "fe",
+    "bk",
+    "fn",
+    "ur",
+    "db",
+]
+
+
 class LabelFactory(DjangoModelFactory):
 
     class Meta:
         model = label
 
-    name = factory.LazyFunction(
-        lambda: choice(LABEL_CHOICES)
-    )
+    name = None
 
-    @factory.post_generation
-    def task_table(self, create, extracted, **kwargs):
 
-        if not create:
-            return
+# =========================================================
+# CREATE ALL DATA
+# =========================================================
 
-        if extracted:
-            for task in extracted:
-                self.task_table.add(task)
+@transaction.atomic
 def create():
 
-    # -------------------------
-    # Users
-    # -------------------------
+    print("Deleting old data...")
+
+    # -----------------------------------------------------
+    # DELETE OLD DATA
+    # -----------------------------------------------------
+
+    workspace_members.objects.all().delete()
+    tasks.objects.all().delete()
+    project.objects.all().delete()
+    label.objects.all().delete()
+    workspace.objects.all().delete()
+    User.objects.all().delete()
+
+    print("Old data deleted.")
+
+    # -----------------------------------------------------
+    # USERS
+    # -----------------------------------------------------
 
     users = UserFactory.create_batch(30)
 
+    print(f"{len(users)} users created.")
 
-    # -------------------------
-    # Workspaces
-    # -------------------------
+    # -----------------------------------------------------
+    # WORKSPACES
+    # -----------------------------------------------------
 
-    workspaces = WorkspaceFactory.create_batch(8)
+    workspaces = []
 
+    for i in range(8):
 
-    # -------------------------
-    # Members
-    # -------------------------
+        # Owner از همان 30 User انتخاب می‌شود
+        owner = random.choice(users)
+
+        ws = WorkspaceFactory(
+            name=f"Workspace {i + 1}",
+            owner=owner,
+        )
+
+        workspaces.append(ws)
+
+    print(
+        f"{len(workspaces)} workspaces created."
+    )
+
+    # -----------------------------------------------------
+    # WORKSPACE MEMBERS
+    # -----------------------------------------------------
 
     for ws in workspaces:
 
-        # Owner
+        # =============================================
+        # OWNER
+        # =============================================
+
         WorkspaceMemberFactory(
             workspace=ws,
             user=ws.owner,
-            role="OW"
+            role="OW",
         )
 
-        # انتخاب 4 تا 7 عضو غیر Owner
+        # =============================================
+        # OTHER USERS
+        # =============================================
+
         available_users = [
-            user for user in users
-            if user != ws.owner
+            user
+            for user in users
+            if user.pk != ws.owner_id
         ]
 
-        selected_users = sample(
-            available_users,
-            randint(4, 7)
+        member_count = random.randint(
+            4,
+            min(7, len(available_users))
         )
 
-        for user in selected_users:
+        selected_users = random.sample(
+            available_users,
+            member_count
+        )
+
+        # دو نفر Admin
+        admin_count = min(
+            2,
+            len(selected_users)
+        )
+
+        for user in selected_users[:admin_count]:
 
             WorkspaceMemberFactory(
                 workspace=ws,
                 user=user,
-                role=choice(["AD", "Mb"])
+                role="AD",
             )
 
+        # بقیه Member
+        for user in selected_users[admin_count:]:
 
-    # -------------------------
-    # Projects
-    # -------------------------
+            WorkspaceMemberFactory(
+                workspace=ws,
+                user=user,
+                role="Mb",
+            )
+
+    print("Workspace members created.")
+
+    # -----------------------------------------------------
+    # PROJECTS
+    # -----------------------------------------------------
 
     projects = []
 
     for ws in workspaces:
 
-        for _ in range(4):
+        members = list(
+            workspace_members.objects
+            .filter(workspace=ws)
+            .select_related("user")
+        )
 
-            project = ProjectFactory(
-                workspace=ws,
-                create_by=ws.owner
+        member_users = [
+            member.user
+            for member in members
+        ]
+
+        for i in range(4):
+
+            creator = random.choice(
+                member_users
             )
 
-            projects.append(project)
+            project_obj = ProjectFactory(
+                name=f"{ws.name} - Project {i + 1}",
+                workspace=ws,
+                create_by=creator,
+            )
 
+            projects.append(project_obj)
 
-    # -------------------------
-    # Tasks
-    # -------------------------
+    print(
+        f"{len(projects)} projects created."
+    )
+
+    # -----------------------------------------------------
+    # TASKS
+    # -----------------------------------------------------
 
     tasks_list = []
 
-    for project in projects:
+    for project_obj in projects:
 
         members = list(
-            project.workspace.workspace_member.all()
+            workspace_members.objects
+            .filter(
+                workspace=project_obj.workspace
+            )
+            .select_related("user")
         )
 
-        for _ in range(5):
+        member_users = [
+            member.user
+            for member in members
+        ]
 
-            member = choice(members)
+        for i in range(5):
+
+            assigned_user = random.choice(
+                member_users
+            )
+
+            creator = random.choice(
+                member_users
+            )
 
             task = TaskFactory(
-                project=project,
-                assign=member.user,
-                create_by=project.create_by
+                title=(
+                    f"{project_obj.name} "
+                    f"- Task {i + 1}"
+                ),
+                project=project_obj,
+                assign=assigned_user,
+                create_by=creator,
             )
 
             tasks_list.append(task)
 
+    print(
+        f"{len(tasks_list)} tasks created."
+    )
 
-    # -------------------------
-    # Labels
-    # -------------------------
+    # -----------------------------------------------------
+    # LABELS
+    # -----------------------------------------------------
 
-    labels = [
-        LabelFactory(name=label_name)
-        for label_name in LABEL_CHOICES
-    ]
+    labels = []
 
-    # -------------------------
-    # Assign Labels
-    # -------------------------
+    for label_name in LABEL_CHOICES:
 
-    # اول تضمین می‌کنیم هر Label حداقل یک بار استفاده شود
+        label_obj = LabelFactory(
+            name=label_name
+        )
+
+        labels.append(label_obj)
+
+    print(
+        f"{len(labels)} labels created."
+    )
+
+    # -----------------------------------------------------
+    # ASSIGN LABELS
+    # -----------------------------------------------------
 
     shuffled_tasks = tasks_list.copy()
 
-    from random import shuffle
+    random.shuffle(
+        shuffled_tasks
+    )
 
-    shuffle(shuffled_tasks)
-
+    # هر Label حداقل به یک Task
     for label_obj, task in zip(
         labels,
         shuffled_tasks
@@ -280,22 +390,49 @@ def create():
 
         label_obj.task_table.add(task)
 
-
-    # بعد برای هر Task بین 1 تا 3 Label تصادفی
+    # هر Task بین 1 تا 3 Label
     for task in tasks_list:
 
-        number_of_labels = randint(1, 3)
-
-        selected_labels = sample(
+        selected_labels = random.sample(
             labels,
-            number_of_labels
+            random.randint(
+                1,
+                min(3, len(labels))
+            )
         )
 
         for label_obj in selected_labels:
 
             label_obj.task_table.add(task)
 
+    # -----------------------------------------------------
+    # PRINT RESULT
+    # -----------------------------------------------------
 
-    print(
-        "Fake data created successfully!"
-    )
+    print("\n" + "=" * 60)
+    print("WORKSPACE MEMBERS")
+    print("=" * 60)
+
+    for ws in workspaces:
+
+        print(
+            f"\n{ws.name}"
+            f" | OWNER = {ws.owner.username}"
+        )
+
+        members = (
+            workspace_members.objects
+            .filter(workspace=ws)
+            .select_related("user")
+        )
+
+        for member in members:
+
+            print(
+                f"    {member.user.username}"
+                f" -> {member.role}"
+            )
+
+    print("\n" + "=" * 60)
+    print("Fake data created successfully!")
+    print("=" * 60)

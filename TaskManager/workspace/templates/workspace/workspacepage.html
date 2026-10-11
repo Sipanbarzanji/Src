@@ -1,0 +1,41 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>workspace page</title>
+</head>
+
+<body>
+    your workspace:
+    <br>
+    {% if user.workspaces_owner.exists %}
+    <ul>
+        {% for w in user.workspaces_owner.all%}
+        <li>
+            <a href="{% url 'workspace:workspacedetial' pk=w.id %}">
+                {{w.name}}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    you dont own a workspace
+    {% endif %}
+    <br>
+    workspaces your in:
+    {% for wm in user.workspace_member.all %}
+    <ul>
+        <li>
+            <a href="{% url 'workspace:workspacedetial' pk=wm.workspace.id %}">
+                {{wm.workspace.name}}
+            </a>
+        </li>
+    </ul>
+    {% empty %}
+    <li>you are not in any workspace</li>
+    {% endfor %}
+    </div>
+</body>
+
+</html>

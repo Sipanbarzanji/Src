@@ -1,0 +1,44 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>wk details</title>
+    <style>
+        .container {
+            display: flex;
+        }
+
+        .box {
+            width: 50%;
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <div class="container">
+        <div class="box">
+            {{project.name}}
+            <br>
+            create by {{project.create_by}} at {{project.create_at}}
+            <br>
+            <p>
+                {{project.description}}
+            </p>
+            status: {{project.get_status_display}}
+        </div>
+        <div class="box">
+            {% for task in project.tasks.all %}
+            {{task.title}} status : {{task.get_status_display}}
+            {% if task.assign == request.user %}
+            ---your task---
+            {% endif %}
+            <br>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+
+</html>

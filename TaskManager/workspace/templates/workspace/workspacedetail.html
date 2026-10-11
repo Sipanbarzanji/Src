@@ -1,0 +1,45 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>wk details</title>
+    <style>
+        .container {
+            display: flex;
+        }
+
+        .box {
+            width: 50%;
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <div class="container">
+        <div class="box">
+            <p>users:</p>
+            {% for member in members %}
+            <div>
+                {{member.user.first_name}} {{member.user.last_name}} ------>role: {{member.role}}
+            </div>
+
+
+            {% endfor %}
+        </div>
+        <div class="box">
+            <p>projects:</p>
+            {% for project in workspace.projects.all %}
+            <div>
+                <a href="{% url 'workspace:projectdetail' project.id%}"> {{project.name}}</a>
+            </div>
+
+
+            {% endfor %}
+        </div>
+    </div>
+</body>
+
+</html>
