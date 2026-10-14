@@ -156,6 +156,7 @@
             {% empty %}
             <li>you are not a member of any workspace</li>
             {% endfor %}
+            <a href="{% url 'workspace:projectpage'%}"> click for project page</a>
         </div>
         <div class="quadrant q4">
             <p>
@@ -169,6 +170,7 @@
                 <li> {{t.title}}</li>
 
                 {% endfor %}
+                <a href="{% url 'workspace:taskpage' %}">click for taskpage</a>
             </ul>
             {% else %}
             you dont have any tasks

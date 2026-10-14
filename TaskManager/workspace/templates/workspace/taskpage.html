@@ -1,0 +1,19 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tasks</title>
+</head>
+
+<body>
+    {% for task in tasks %}
+    <a href="{% url 'workspace:taskdetail' pk=task.id %}">
+        {{task.title}}----{{task.get_status_display}}----{{task.get_priority_display}}----deadline:{{task.deadline}}
+
+    </a>
+    <br>
+    {% endfor %}
+</body>
+
+</html>

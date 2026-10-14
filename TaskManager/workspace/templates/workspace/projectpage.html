@@ -1,0 +1,25 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>project page</title>
+</head>
+
+<body>
+    {% if projects %}
+    {% for project in projects %}
+    <a href="{% url 'workspace:projectdetail' project.id %}">{{project.name}}</a>
+    ----state:{{project.get_status_display}}
+    {% if project.create_by == request.user %}
+    <create by yot>
+        {% endif %}
+        <br>
+        {% endfor %}
+        {% else %}
+        <p> you dont have any projects
+        </p>
+        {% endif %}
+</body>
+
+</html>

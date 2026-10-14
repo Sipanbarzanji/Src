@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>wk details</title>
+    <title>project details</title>
     <style>
         .container {
             display: flex;
@@ -31,11 +31,14 @@
         </div>
         <div class="box">
             {% for task in project.tasks.all %}
-            {{task.title}} status : {{task.get_status_display}}
-            {% if task.assign == request.user %}
-            ---your task---
-            {% endif %}
-            <br>
+            <a href="{% url 'workspace:taskdetail' pk=task.id %}">
+                {{task.title}} status : {{task.get_status_display}}
+                {% if task.assign == request.user %}
+                ---your task---
+                {% endif %}
+                <br>
+            </a>
+
             {% endfor %}
         </div>
     </div>
