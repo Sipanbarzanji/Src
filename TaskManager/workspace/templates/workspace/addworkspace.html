@@ -1,0 +1,32 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>add workspace</title>
+    <style>
+        .container {
+            display: flex;
+        }
+
+        .box {
+            width: 50%;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <form method="post">
+            {%csrf_token%}
+            {{form.as_p}}
+            <button type="submit">add</button>
+
+        </form>
+    </div>
+    <form method="post">
+
+    </form>
+</body>
+
+</html>

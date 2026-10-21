@@ -23,7 +23,11 @@
             <p>users:</p>
             {% for member in members %}
             <div>
+                {% if member.user == request.user %}
+                you ------>role: {{member.role}}
+                {% else %}
                 {{member.user.first_name}} {{member.user.last_name}} ------>role: {{member.role}}
+                {% endif %}
             </div>
 
 

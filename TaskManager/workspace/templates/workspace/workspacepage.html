@@ -22,6 +22,7 @@
     {% else %}
     you dont own a workspace
     {% endif %}
+    <a href="{% url 'workspace:addworkspace' %}">add workspace</a>
     <br>
     workspaces your in:
     {% for wm in user.workspace_member.all %}

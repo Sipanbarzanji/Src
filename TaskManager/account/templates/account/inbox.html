@@ -1,0 +1,36 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>inbox</title>
+</head>
+
+<body>
+    <div class="box">
+        <b> notifications</b>
+
+        {% if not all_notifications %}
+        <p>---you dont have any new messages---</p>
+        {% else %}
+        {% for n in all_notifications %}
+        <br>
+        {% if n.notif_type == "IN" and n.target.complete == False %}
+
+        <div class="notification-item" id="notif-{{ n.pk }}">
+            <p>{{ n.message }} ------{{n.create_at}}</p>
+
+            <form method="post" action="{% url 'respond_notification' n.id %}" class="respond-form">
+                {% csrf_token %}
+                <button type="submit" name="action" value="accept">accept</button>
+                <button type="submit" name="action" value="reject">reject</button>
+            </form>
+        </div>
+        {% elif n.notif_type == "IR" %}
+        <p> {{n.message }} --------{{n.create_at}}</p>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+    </div>
+</body>
+
+</html>
