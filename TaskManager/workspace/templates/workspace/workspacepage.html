@@ -27,11 +27,13 @@
     workspaces your in:
     {% for wm in user.workspace_member.all %}
     <ul>
+        {% if wm.role != "OW" %}
         <li>
             <a href="{% url 'workspace:workspacedetial' pk=wm.workspace.id %}">
                 {{wm.workspace.name}}
             </a>
         </li>
+        {%endif%}
     </ul>
     {% empty %}
     <li>you are not in any workspace</li>

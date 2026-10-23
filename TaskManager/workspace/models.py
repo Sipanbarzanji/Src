@@ -39,7 +39,7 @@ class project(create_and_update):
     workspace=models.ForeignKey(workspace,related_name="projects",on_delete=models.CASCADE)
     description=models.TextField()
     create_by=models.ForeignKey(User,related_name="projects_created", on_delete=models.CASCADE)
-    status=models.CharField(max_length=2,choices=PROJECT_STATUS)
+    status=models.CharField(max_length=2,choices=PROJECT_STATUS,default="pn")
 task_status=[
     ("td","todo"),
     ("ip","inprogres"),

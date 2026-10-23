@@ -25,7 +25,7 @@
                 <button type="submit" name="action" value="reject">reject</button>
             </form>
         </div>
-        {% elif n.notif_type == "IR" %}
+        {% else %}
         <p> {{n.message }} --------{{n.create_at}}</p>
         {% endif %}
         {% endfor %}

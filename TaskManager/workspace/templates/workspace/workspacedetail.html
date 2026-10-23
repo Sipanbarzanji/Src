@@ -26,22 +26,46 @@
                 {% if member.user == request.user %}
                 you ------>role: {{member.role}}
                 {% else %}
-                {{member.user.first_name}} {{member.user.last_name}} ------>role: {{member.role}}
+                {{member.user.username}} : {{member.user.first_name}} {{member.user.last_name}} ------>role:
+                {{member.role}}
+                {%if yourrole != "Mb" %}
+                <form method="post" action="{%  url 'workspace:change_role' member %}">
+                    {%csrf_token%}
+                    {% if member.role == "AD"%}
+                    <p style="display: inline;"> change role : </p>
+                    <input type="radio" id="role-{{ member.id }}" name=" change-role" value="Mb">
+                    <label for="role">Member</label><br>
+                    <button type="submit">change</button>
+                    {%elif member.role == "Mb" %}
+                    <p style="display: inline;"> change role : </p>
+                    <input type="radio" id="role" name="change-role" value="AD">
+                    <label for="role">Admin</label><br>
+                    <button type="submit">change</button>
+                    {%endif%}
+                </form>
                 {% endif %}
+
+                {% endif %}
+
             </div>
-
-
             {% endfor %}
+            <a href="{% url 'workspace:adduser' workspace.id %}"> add user</a>
         </div>
         <div class="box">
-            <p>projects:</p>
+            <p>projects:
+                {%if yourrole != "Mb"%}
+                <a href="{% url 'workspace:addproject' workspace.id %}">add project</a>
+                {%endif%}
+            </p>
             {% for project in workspace.projects.all %}
             <div>
-                <a href="{% url 'workspace:projectdetail' project.id%}"> {{project.name}}</a>
+                <a href="{% url 'workspace:projectdetail' project.id %}"> {{project.name}}</a>
             </div>
 
-
+            {% empty %}
+            <p>workspace dosnt have any projects</p>
             {% endfor %}
+
         </div>
     </div>
 </body>

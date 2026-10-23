@@ -171,25 +171,6 @@
         </div>
 
         <div class="quadrant q3">
-            <p>
-                your projects
-            </p>
-
-            {% for wm in user.workspace_member.all|slice:":3" %}
-            {% with projects=wm.workspace.projects.all %}
-            {% if projects %}
-            <ul>
-                {% for p in projects %}
-                <li>{{ p.name }}</li>
-                {% endfor %}
-                <li>...</li>
-            </ul>
-
-            {% endif %}
-            {% endwith %}
-            {% empty %}
-            <li>you are not a member of any workspace</li>
-            {% endfor %}
             <a href="{% url 'workspace:projectpage'%}"> click for project page</a>
         </div>
         <div class="quadrant q4">

@@ -30,6 +30,8 @@
             status: {{project.get_status_display}}
         </div>
         <div class="box">
+            tasks:
+            <br>
             {% for task in project.tasks.all %}
             <a href="{% url 'workspace:taskdetail' pk=task.id %}">
                 {{task.title}} status : {{task.get_status_display}}
@@ -38,6 +40,8 @@
                 {% endif %}
                 <br>
             </a>
+            {% empty %}
+            <p> project dosnt have any tasks </p>
 
             {% endfor %}
         </div>
