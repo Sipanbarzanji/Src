@@ -30,7 +30,7 @@ class workspace_members(models.Model):
 PROJECT_STATUS=[
     ("pn","planing"),
     ("ac","acting"),
-    ("cp","complete")
+    ("cp","complete"),
 ]
 class project(create_and_update):
     class Meta:

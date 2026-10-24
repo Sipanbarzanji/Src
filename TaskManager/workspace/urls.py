@@ -34,5 +34,8 @@ path("tasks/<int:pk>/",views.taskdetail,name='taskdetail'),
 path("addworkspace/",views.addworkspace,name="addworkspace"),
 path("adduser/<int:pk>/",views.adduser,name="adduser"),
 path("changerole/<workmem:wkmem>",views.changerole,name="change_role"),
-path("addproject/<int:pk>",views.addproject,name="addproject")
+path("addproject/<int:pk>",views.addproject,name="addproject"),
+path("removeworkspace/<int:pk>",views.removeworkspace,name="removeworkspace"),
+path("editproject/<int:pk>",views.editproject,name="editproject"),
+path("removeproject/<int:pk>",views.removeproject,name="removeproject"),
 ]

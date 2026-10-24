@@ -8,8 +8,10 @@
 
 <body>
     {% if projects %}
+    <b>projects: </b> <span> add project in workspace page</span>
+    <br>
     {% for project in projects %}
-    <a href="{% url 'workspace:projectdetail' project.id %}">{{project.name}}</a>
+    <a href="{% url 'workspace:projectdetail' project.id %}">{{project.name}} </a>workspace:{{project.workspace.name}}
     ----state:{{project.get_status_display}}
     {% if project.create_by == request.user %}
     <create by yot>

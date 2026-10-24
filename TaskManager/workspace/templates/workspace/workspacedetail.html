@@ -33,13 +33,24 @@
                     {%csrf_token%}
                     {% if member.role == "AD"%}
                     <p style="display: inline;"> change role : </p>
-                    <input type="radio" id="role-{{ member.id }}" name=" change-role" value="Mb">
-                    <label for="role">Member</label><br>
+                    <br>
+                    <input type="radio" id="role-{{ member.id }}" name="action" value="Mb">
+                    <label for="role-{{ member.id }}">Member</label><br>
+                    {% if yourrole == "OW" %}
+                    <input type="radio" id="remove-{{ member.id }}" name="action" value="remove">
+                    <label for="remove-{{ member.id }}">remove user</label><br>
+                    {%endif%}
                     <button type="submit">change</button>
+
                     {%elif member.role == "Mb" %}
                     <p style="display: inline;"> change role : </p>
-                    <input type="radio" id="role" name="change-role" value="AD">
-                    <label for="role">Admin</label><br>
+                    <br>
+                    <input type="radio" id="role-{{ member.id }}" name="action" value="AD">
+                    <label for="role-{{ member.id }}">Admin</label><br>
+                    {% if yourrole == "OW"%}
+                    <input type="radio" id="remove-{{ member.id }}" name="action" value="remove">
+                    <label for="remove-user">remove user</label><br>
+                    {%endif%}
                     <button type="submit">change</button>
                     {%endif%}
                 </form>
@@ -49,7 +60,17 @@
 
             </div>
             {% endfor %}
+            {% if yourrole != "Mb" %}
             <a href="{% url 'workspace:adduser' workspace.id %}"> add user</a>
+            {%endif%}
+            <br>
+            <br>
+            {% if yourrole == "OW" %}
+            <form action="{% url 'workspace:removeworkspace' workspace.id %}" method="post">
+                {%csrf_token%}
+                <button type="submit">remove workspace</button>
+            </form>
+            {%endif%}
         </div>
         <div class="box">
             <p>projects:

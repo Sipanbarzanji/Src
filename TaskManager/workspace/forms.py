@@ -34,3 +34,8 @@ class addprojectform(forms.ModelForm):
     class Meta:
         model=project
         fields = ["name","description"]
+class editprojectform(forms.ModelForm):
+    class Meta:
+        model=project
+        fields=["name","description","status"]
+        

@@ -10,6 +10,10 @@ NOTIF_TYPE=[
     ("IN","invitation"),
     ("IR","invitation result"),
     ("CR","change role"),
+    ("RW","removed from workspace"),
+    ("WR","workspace has removed"),
+    ("EP","edit project"),
+    ("RP","removed project")
 ]
 class notifaction(create_and_update):
     class Meta:
@@ -18,7 +22,7 @@ class notifaction(create_and_update):
     message=models.TextField(max_length=150)
     notif_type=models.CharField(max_length=3,choices=NOTIF_TYPE)
     is_read=models.BooleanField(default=False)
-    content_type=models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True,blank=True)
+    content_type=models.ForeignKey(ContentType, on_delete=models.PROTECT, null=True,blank=True)
     object_id = models.PositiveBigIntegerField(null=True, blank=True)
     target=GenericForeignKey("content_type","object_id")
 class WorkspaceInvitation(create_and_update):
