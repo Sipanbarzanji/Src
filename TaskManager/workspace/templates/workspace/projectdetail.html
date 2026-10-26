@@ -35,12 +35,18 @@
         </div>
         <div class="box">
             tasks:
+            {% if role != "Mb" %}
+            <a href="{% url 'workspace:addtask' project.id %}"> add task</a>
             <br>
+            {%endif%}
             {% for task in project.tasks.all %}
             <a href="{% url 'workspace:taskdetail' pk=task.id %}">
-                {{task.title}} status : {{task.get_status_display}}
+                {{task.title}} status : {{task.get_status_display}} assign to: {{task.assign.first_name}}
+                {{task.assign.last_name}}
                 {% if task.assign == request.user %}
                 ---your task---
+                {% elif task_create_by == request.user%}
+                --- create by you ---
                 {% endif %}
                 <br>
             </a>

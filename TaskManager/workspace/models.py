@@ -44,7 +44,8 @@ task_status=[
     ("td","todo"),
     ("ip","inprogres"),
     ("rw","rewie"),
-    ("dn","done")
+    ("dn","done"),
+    ("dp","deadline passed")
 ]
 task_priority=[("lw","low"),
              ("md","medium"),
@@ -59,7 +60,7 @@ class tasks(create_and_update):
     project=models.ForeignKey(project,related_name="tasks", on_delete=models.CASCADE)
     assign=models.ForeignKey(User,related_name="tasks",on_delete=models.CASCADE)
     create_by=models.ForeignKey(User,related_name="tasks_created",on_delete=models.CASCADE)
-    status=models.CharField( max_length=2,choices=task_status)
+    status=models.CharField( max_length=2,choices=task_status,default="td")
     priority=models.CharField( max_length=2,choices=task_priority)
     deadline=models.DateTimeField()
 

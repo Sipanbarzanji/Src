@@ -30,7 +30,8 @@
         </div>
         <div class="box">
             {% if project.create_by == request.user or role == "OW"%}
-            <form action="{% url 'workspace:removeproject' project.id %}" method="post">
+            <form action="{% url 'workspace:removeproject' project.id %}" method="post"
+                onsubmit="return confirm('are you sure to remove this project');">
                 {%csrf_token%}
                 <button type="submit"> remove project</button>
             </form>

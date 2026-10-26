@@ -38,4 +38,8 @@ path("addproject/<int:pk>",views.addproject,name="addproject"),
 path("removeworkspace/<int:pk>",views.removeworkspace,name="removeworkspace"),
 path("editproject/<int:pk>",views.editproject,name="editproject"),
 path("removeproject/<int:pk>",views.removeproject,name="removeproject"),
+path("addtask/<int:pk>/",views.addtask,name="addtask"),
+path("removetask/<int:pk>/",views.deletetask,name="removetask"),
+path("changetaskstatus/<int:pk>/",views.changetaskstatus,name="changetaskstatus")
+
 ]

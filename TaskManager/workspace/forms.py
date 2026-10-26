@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import project
+from .models import project,tasks
+from datetime import date
+
 class WorkspaceCreateForm(forms.Form):
     name = forms.CharField(max_length=50)
     description = forms.CharField(widget=forms.Textarea)
@@ -38,4 +40,33 @@ class editprojectform(forms.ModelForm):
     class Meta:
         model=project
         fields=["name","description","status"]
-        
+class addtaskform(forms.ModelForm):
+    class Meta:
+        model=tasks
+        fields=["title","description","priority","deadline"]
+        widgets = {
+            'deadline': forms.DateTimeInput(
+                attrs={'type': 'datetime-local'},
+                format='%Y-%m-%dT%H:%M',     
+            ),
+        }
+    assign= forms.ModelChoiceField(
+        queryset=User.objects.none(),
+        required=True,
+        widget=forms.Select,
+        label="assign to",
+    )
+
+
+    def __init__(self, *args, workspace=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['deadline'].widget.attrs['min'] = date.today().strftime('%Y-%m-%dT%H:%M')
+        self.fields['deadline'].input_formats = ['%Y-%m-%dT%H:%M']
+
+        if workspace is not None:
+            self.fields["assign"].queryset = User.objects.filter(
+                workspace_member__workspace=workspace
+            )
+        else:
+            self.fields["assign"].queryset = User.objects.none()
+

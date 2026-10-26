@@ -29,7 +29,10 @@
                 {{member.user.username}} : {{member.user.first_name}} {{member.user.last_name}} ------>role:
                 {{member.role}}
                 {%if yourrole != "Mb" %}
-                <form method="post" action="{%  url 'workspace:change_role' member %}">
+                <form method="post" action="{%  url 'workspace:change_role' member %}"
+                    onsubmit="return confirm('are you sure to change role or remove this user');">
+
+                    >
                     {%csrf_token%}
                     {% if member.role == "AD"%}
                     <p style="display: inline;"> change role : </p>
@@ -66,7 +69,10 @@
             <br>
             <br>
             {% if yourrole == "OW" %}
-            <form action="{% url 'workspace:removeworkspace' workspace.id %}" method="post">
+            <form action="{% url 'workspace:removeworkspace' workspace.id %}" method="post"
+                onsubmit="return confirm('are you sure to remove this workspace');">
+
+                >
                 {%csrf_token%}
                 <button type="submit">remove workspace</button>
             </form>

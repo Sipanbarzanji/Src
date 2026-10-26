@@ -1,9 +1,9 @@
 from django.shortcuts import render,get_object_or_404,redirect
 from django.http import HttpResponse,HttpResponseBadRequest,Http404
-from .models import workspace,workspace_members,project as projects,tasks
+from .models import workspace,workspace_members,project as projects,tasks,task_status
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from .forms import WorkspaceCreateForm,adduserform,addprojectform,editprojectform
+from .forms import WorkspaceCreateForm,adduserform,addprojectform,editprojectform,addtaskform
 from django.db.models import Q
 from django.db import transaction
 from django.core.exceptions import PermissionDenied
@@ -83,10 +83,13 @@ def taskpage(request):
     tasks=request.user.tasks.all()
     return render(request,"workspace/taskpage.html",{"tasks":tasks})
 @login_required 
-
 def taskdetail(request,pk):
     task=get_object_or_404(tasks,id=pk)
-    return render(request,"workspace/taskdetail.html",{"task":task})
+    try:
+        role=workspace_members.objects.get(workspace=task.project.workspace,user=request.user).role
+    except:
+        raise Http404("yor not member of this workspace")
+    return render(request,"workspace/taskdetail.html",{"task":task,"role":role,"taskstatus":task_status})
 @login_required 
 def adduser(request,pk):
     wkspace=get_object_or_404(workspace,id=pk)
@@ -251,3 +254,70 @@ def removeproject(request,pk):
         )
     project.delete()
     return redirect("workspace:projectpage")
+@login_required
+def addtask(request,pk):
+    project=get_object_or_404(projects,id=pk)
+    try:
+        wkmem=workspace_members.objects.filter(workspace=project.workspace)
+        role=wkmem.get(user=request.user).role
+    except:
+        raise Http404("tour not member of this workspace")
+    if role not in ["OW",'AD']:
+        raise PermissionDenied("you cant add task")
+    if request.method=="POST":
+        form=addtaskform(request.POST,workspace=project.workspace)
+        if form.is_valid():
+            new_task=form.save(commit=False)
+            new_task.create_by=request.user
+            new_task.assign=form.cleaned_data["assign"]
+            new_task.project=project
+            new_task.save()
+            notifaction.objects.create(
+                recipient=new_task.assign,
+                message=f"in {project.workspace} user {request.user.first_name} {request.user.last_name} has create a task for you  ",
+                notif_type="NT",
+                target=new_task
+            
+          )
+            return redirect("workspace:taskdetail",new_task.id)
+    form=addtaskform(workspace=project.workspace)
+    return render(request,"workspace/addtask.html",{"form":form})
+@login_required
+@require_POST
+def deletetask(request,pk):
+    task=get_object_or_404(tasks,id=pk)
+    project_id=task.project.id
+    role=workspace_members.objects.get(workspace=task.project.workspace,user=request.user).role
+    if role !="OW" and task.project.create_by != request.user and task.create_by and request.user:
+        raise PermissionDenied("toy cant delete this task")
+    notifaction.objects.create(
+                        recipient=task.assign,
+                        message=f"{request.user.first_name} {request.user.last_name} has deleted {task.title} task",
+                        notif_type="DT",
+                        )
+    task.delete()
+    return redirect("workspace:projectdetail",project_id)
+@login_required
+@require_POST
+def changetaskstatus(request,pk):
+    task=get_object_or_404(tasks,id=pk)
+    if task.create_by != request.user and task.assign != request.user:
+        raise PermissionDenied("you cant change task status")
+    status=request.POST.get("state")
+    task.status=status
+    task.save(update_fields=["status"])
+    if task.create_by==request.user and task.create_by!=task.assign :
+                            notifaction.objects.create(
+                        recipient=task.assign,
+                        message=f"{request.user.first_name} {request.user.last_name} has changed {task.title} status to {task.get_status_display()}",
+                        notif_type="TS",  
+                        target=task  
+                        )
+    elif(task.assign==request.user and task.create_by!=task.assign):
+                                    notifaction.objects.create(
+                        recipient=task.create_by,
+                        message=f"{request.user.first_name} {request.user.last_name} has changed {task.title} status to {task.status}",
+                        notif_type="TS",  
+                        target=task  
+                        )
+    return redirect ("workspace:taskdetail",pk)

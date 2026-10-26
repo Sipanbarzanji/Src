@@ -13,7 +13,9 @@ NOTIF_TYPE=[
     ("RW","removed from workspace"),
     ("WR","workspace has removed"),
     ("EP","edit project"),
-    ("RP","removed project")
+    ("RP","removed project"),
+    ("DT","deleted task"),
+    ("TS","task status is changed")
 ]
 class notifaction(create_and_update):
     class Meta:
