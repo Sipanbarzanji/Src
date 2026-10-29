@@ -7,13 +7,52 @@
 </head>
 
 <body>
-    {% for task in tasks %}
-    <a href="{% url 'workspace:taskdetail' pk=task.id %}">
-        {{task.title}}----{{task.get_status_display}}----{{task.get_priority_display}}----deadline:{{task.deadline}}
 
-    </a>
-    <br>
-    {% endfor %}
+</body>
+
+</html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tasks page</title>
+    <style>
+        .container {
+            display: flex;
+        }
+
+        .box {
+            width: 50%;
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <div class="container">
+        <div class="box">
+            <p>tasks created:</p>
+            {% for task in tasks_created %}
+            <a href="{% url 'workspace:taskdetail' pk=task.id %}">
+                {{task.title}}----{{task.get_status_display}}----{{task.get_priority_display}}----deadline:{{task.deadline}}
+
+            </a>
+            <br>
+            {% endfor %}
+        </div>
+        <div class="box">
+            <p>tasks todo:</p>
+            {% for task in tasks_todo %}
+            <a href="{% url 'workspace:taskdetail' pk=task.id %}">
+                {{task.title}}----{{task.get_status_display}}----{{task.get_priority_display}}----deadline:{{task.deadline}}
+
+            </a>
+            <br>
+            {% endfor %}
+        </div>
+    </div>
 </body>
 
 </html>

@@ -56,7 +56,20 @@ class addtaskform(forms.ModelForm):
         widget=forms.Select,
         label="assign to",
     )
-
+    label_name=[
+    ("bg","bug"),
+    ("fe","feature"),
+    ("bk","backend"),
+    ("fn","fronted"),
+    ("ur","urgent"),
+    ("db","database")
+]
+    labels = forms.MultipleChoiceField(
+        choices=label_name,
+        widget=forms.CheckboxSelectMultiple,
+        required=True,
+        label='labels',
+    )
 
     def __init__(self, *args, workspace=None, **kwargs):
         super().__init__(*args, **kwargs)

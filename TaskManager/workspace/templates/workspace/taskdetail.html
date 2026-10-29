@@ -26,15 +26,23 @@
     <br>
     {{task.description}}
     <br>
+    labels:
+    {% for label in task.labels.all %}
+    {{label.get_name_display}} ,
+    {% empty %}
+    this task dosnt have any label
+    {% endfor %}
+
+
     {% if task.create_by == request.user or role == "OW" or task.project.create_by == request.user %}
-    <form action="{% url 'workspace:removetask' task.id %}" method="post">
+    <form action="{% url 'workspace:removetask' task.id %}" method="post"
+        onsubmit="return confirm('are you sure to delete task ');">
         {% csrf_token%}
         <button type="submit"> remove task</button>
     </form>
     {%endif%}
     {% if task.assign == request.user or task.create_by == request.user %}
-    <form action="{% url 'workspace:changetaskstatus' task.id %}" method="post"
-        onsubmit="return confirm('are you sure to change role or remove this user');">
+    <form action="{% url 'workspace:changetaskstatus' task.id %}" method="post">
         {% csrf_token%}
         <label for="state">cgange status:</label>
         <select id="state" name="state">
@@ -48,6 +56,10 @@
         <button type="submit"> change status </button>
     </form>
     {% endif %}
+    comments:
+    {% for comment in task.comments.all %}
+    <p> {{comment.content}}</p>
+    {% endfor %}
 </body>
 
 </html>

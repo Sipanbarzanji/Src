@@ -16,7 +16,7 @@ class workspaceadmin(admin.ModelAdmin):
     "description",
     "owner"
     ]
-    inlines = [projectinline]  # لیست Inline های خود را اینجا قرار دهید
+    inlines = [projectinline]  
 
 class taskinline(admin.TabularInline):
     model = tasks  

@@ -1,6 +1,6 @@
 from django.shortcuts import render,get_object_or_404,redirect
 from django.http import HttpResponse,HttpResponseBadRequest,Http404
-from .models import workspace,workspace_members,project as projects,tasks,task_status
+from .models import workspace,workspace_members,project as projects,tasks,task_status,label
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from .forms import WorkspaceCreateForm,adduserform,addprojectform,editprojectform,addtaskform
@@ -57,10 +57,12 @@ def addworkspace(request):
     return render(request,"workspace/addworkspace.html",{"form": form},)
 @login_required 
 def workspacedetial(request,pk):
-    wkspace=workspace.objects.get(id=pk)
+    wkspace=get_object_or_404(workspace,id=pk)
     wkmembers=workspace_members.objects.filter(workspace=wkspace)
-    yourrole=workspace_members.objects.get(workspace=wkspace,user=request.user).role
-    return render(request,"workspace/workspacedetail.html",{"members":wkmembers,"workspace":wkspace,"yourrole":yourrole})
+    yourrole=workspace_members.objects.get(workspace=wkspace,user=request.user)
+    if not yourrole:
+        raise Http404("your not member of this workspace")
+    return render(request,"workspace/workspacedetail.html",{"members":wkmembers,"workspace":wkspace,"yourrole":yourrole.role})
 @login_required 
 def projectpage(request):
     wkmem=request.user.workspace_member.all()
@@ -69,35 +71,32 @@ def projectpage(request):
         projectss.extend(wk.workspace.projects.all())
     return render(request,"workspace/projectpage.html",{"projects":projectss})
 @login_required 
-
 def projectdetail(request,pk):
-    project=projects.objects.get(id=pk)
-    try:
-        role=workspace_members.objects.get(user=request.user,workspace=project.workspace).role
-    except:
-        raise Http404("ypur not member of this workspace")
-    return render(request,"workspace/projectdetail.html",{"project":project,"role":role})
+    project=get_object_or_404(projects,id=pk)
+    role=workspace_members.objects.get(user=request.user,workspace=project.workspace)
+    if not role:
+        raise Http404("your not member of this workspace")
+    return render(request,"workspace/projectdetail.html",{"project":project,"role":role.role})
 @login_required 
 
 def taskpage(request):
-    tasks=request.user.tasks.all()
-    return render(request,"workspace/taskpage.html",{"tasks":tasks})
+    tasks_created=request.user.tasks_created.all()
+    tasks_todo=request.user.tasks.all()
+    return render(request,"workspace/taskpage.html",{"tasks_todo":tasks_todo,"tasks_created":tasks_created})
 @login_required 
 def taskdetail(request,pk):
     task=get_object_or_404(tasks,id=pk)
-    try:
-        role=workspace_members.objects.get(workspace=task.project.workspace,user=request.user).role
-    except:
+    role=workspace_members.objects.get(workspace=task.project.workspace,user=request.user)
+    if not role:
         raise Http404("yor not member of this workspace")
-    return render(request,"workspace/taskdetail.html",{"task":task,"role":role,"taskstatus":task_status})
+    return render(request,"workspace/taskdetail.html",{"task":task,"role":role.role,"taskstatus":task_status})
 @login_required 
 def adduser(request,pk):
     wkspace=get_object_or_404(workspace,id=pk)
-    try:
-        userrole=workspace_members.objects.get(workspace=wkspace,user=request.user).role
-    except:
-        raise Http404("tour not in this workspace")
-    if userrole not in ["AD","OW"]:
+    userrole=workspace_members.objects.get(workspace=wkspace,user=request.user)
+    if not userrole:
+        raise Http404("your not in this workspace")
+    if userrole.role not in ["AD","OW"]:
         raise PermissionError("you dont have permission for add user")
     if request.method=="POST":
         form=adduserform(request.POST,workspace=wkspace)
@@ -153,7 +152,6 @@ def changerole(request,wkmem):
     return redirect("workspace:workspacedetial",pk)
 @login_required
 def addproject(request,pk):
-    
     wkspace=get_object_or_404(workspace,id=pk)
     role=get_object_or_404(workspace_members,workspace=wkspace,user=request.user)
     if role.role not in ["AD","OW"]:
@@ -180,11 +178,10 @@ def addproject(request,pk):
 @login_required
 def removeworkspace(request,pk):
     wkspace=get_object_or_404(workspace,id=pk)
-    try:
-        role=workspace_members.objects.get(workspace=wkspace,user=request.user).role
-    except:
+    role=workspace_members.objects.get(workspace=wkspace,user=request.user)
+    if not role:
         raise Http404("your not in this workspace")
-    if role!="OW":
+    if role.role!="OW":
         raise PermissionDenied("you dont have permisstion for remove this workspace")
     wkmem=workspace_members.objects.filter(workspace=wkspace).exclude(user=request.user)
     for user in wkmem:
@@ -199,11 +196,10 @@ def removeworkspace(request,pk):
 @login_required
 def editproject(request,pk):
     project=get_object_or_404(projects,id=pk)
-    try:
-        role=workspace_members.objects.get(workspace=project.workspace,user=request.user).role
-    except:
+    role=workspace_members.objects.get(workspace=project.workspace,user=request.user)
+    if not role:
         raise Http404("your not in this workspace")
-    if role !="OW" and project.create_by != request.user :
+    if role.role !="OW" and project.create_by != request.user :
         raise PermissionDenied("you dont have permission for delete this project")
 
     if request.method=="POST":
@@ -230,19 +226,17 @@ def editproject(request,pk):
                         )
 
         return redirect("workspace:projectdetail",pk)
-    role=workspace_members.objects.get(workspace=project.workspace,user=request.user).role
     form=editprojectform(instance=project)
-    return render(request,"workspace/editproject.html",{"form":form,"project":project,"role":role})
+    return render(request,"workspace/editproject.html",{"form":form,"project":project,"role":role.role})
 @login_required
 @require_POST
 def removeproject(request,pk):
     project=get_object_or_404(projects,id=pk)
-    try:
-        wkmem=workspace_members.objects.filter(workspace=project.workspace)
-        role=wkmem.get(user=request.user).role
-    except:
+    wkmem=workspace_members.objects.filter(workspace=project.workspace)
+    role=wkmem.get(user=request.user)
+    if not role:
         raise Http404("your not in this workspace")
-    if role !="OW" and project.create_by != request.user :
+    if role.role !="OW" and project.create_by != request.user :
         raise PermissionDenied("you dont have permission for delete this project")
     for mem in wkmem:
             if mem.user==request.user:
@@ -257,12 +251,11 @@ def removeproject(request,pk):
 @login_required
 def addtask(request,pk):
     project=get_object_or_404(projects,id=pk)
-    try:
-        wkmem=workspace_members.objects.filter(workspace=project.workspace)
-        role=wkmem.get(user=request.user).role
-    except:
-        raise Http404("tour not member of this workspace")
-    if role not in ["OW",'AD']:
+    wkmem=workspace_members.objects.filter(workspace=project.workspace)
+    role=wkmem.get(user=request.user)
+    if not role:
+        raise Http404("your not member of this workspace")
+    if role.role not in ["OW",'AD']:
         raise PermissionDenied("you cant add task")
     if request.method=="POST":
         form=addtaskform(request.POST,workspace=project.workspace)
@@ -279,6 +272,10 @@ def addtask(request,pk):
                 target=new_task
             
           )
+            
+            for labell in form.cleaned_data["labels"] :
+                label_obj=label.objects.create(name=labell)
+                label_obj.task_table.add(new_task)
             return redirect("workspace:taskdetail",new_task.id)
     form=addtaskform(workspace=project.workspace)
     return render(request,"workspace/addtask.html",{"form":form})

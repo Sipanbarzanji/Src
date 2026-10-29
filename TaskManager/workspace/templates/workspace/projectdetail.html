@@ -29,7 +29,7 @@
             </p>
             status: {{project.get_status_display}}
             <br>
-            {% if project.create_by == request.user or role == "OW "%}
+            {% if project.create_by == request.user or role == "OW"%}
             <a href="{% url 'workspace:editproject' project.id %}">edit project detail</a>
             {% endif %}
         </div>
