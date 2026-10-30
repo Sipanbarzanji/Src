@@ -15,7 +15,8 @@ NOTIF_TYPE=[
     ("EP","edit project"),
     ("RP","removed project"),
     ("DT","deleted task"),
-    ("TS","task status is changed")
+    ("TS","task status is changed"),
+    ("NC","new comment"),
 ]
 class notifaction(create_and_update):
     class Meta:

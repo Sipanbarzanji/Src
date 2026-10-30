@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import project,tasks
 from datetime import date
+from comments.models import comment,reply
 
 class WorkspaceCreateForm(forms.Form):
     name = forms.CharField(max_length=50)
@@ -83,3 +84,11 @@ class addtaskform(forms.ModelForm):
         else:
             self.fields["assign"].queryset = User.objects.none()
 
+class commentform(forms.ModelForm):
+    class Meta:
+        model=comment
+        fields=["content"]
+class replytform(forms.ModelForm):
+    class Meta:
+        model=reply
+        fields=["content"]

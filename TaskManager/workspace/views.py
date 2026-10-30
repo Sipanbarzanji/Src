@@ -3,11 +3,11 @@ from django.http import HttpResponse,HttpResponseBadRequest,Http404
 from .models import workspace,workspace_members,project as projects,tasks,task_status,label
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from .forms import WorkspaceCreateForm,adduserform,addprojectform,editprojectform,addtaskform
-from django.db.models import Q
+from .forms import WorkspaceCreateForm,adduserform,addprojectform,editprojectform,addtaskform,commentform,replytform
 from django.db import transaction
 from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_POST
+from comments.models import comment,reply
 
 
 from notifactions.models import WorkspaceInvitation,notifaction
@@ -89,7 +89,8 @@ def taskdetail(request,pk):
     role=workspace_members.objects.get(workspace=task.project.workspace,user=request.user)
     if not role:
         raise Http404("yor not member of this workspace")
-    return render(request,"workspace/taskdetail.html",{"task":task,"role":role.role,"taskstatus":task_status})
+    form=commentform()
+    return render(request,"workspace/taskdetail.html",{"task":task,"role":role.role,"taskstatus":task_status,"form":form})
 @login_required 
 def adduser(request,pk):
     wkspace=get_object_or_404(workspace,id=pk)
@@ -318,3 +319,60 @@ def changetaskstatus(request,pk):
                         target=task  
                         )
     return redirect ("workspace:taskdetail",pk)
+@login_required
+@require_POST
+def addcomment(request,pk):
+    task=get_object_or_404(tasks,id=pk)
+    if not workspace_members.objects.get(workspace=task.project.workspace,user=request.user):
+        raise Http404("your not member of this workspace")
+    form=commentform(request.POST)
+    if form.is_valid():
+            new_comment=form.save(commit=False)
+            new_comment.user=request.user
+            new_comment.task=task
+            new_comment.save()
+            for recipient in set([task.assign, task.create_by]):
+               if recipient and recipient != request.user :
+                 notifaction.objects.create(
+                  recipient=recipient,
+                     message=f"{request.user.first_name} {request.user.last_name} add a comment on {task.title} task",
+                        notif_type="NC",
+                     target=new_comment
+                          )
+            return redirect("workspace:taskdetail",pk)
+    else:
+        return redirect("workspace:taskdetail",pk)
+@login_required
+def addreply(request,pk):
+    commentt=get_object_or_404(comment,id=pk)
+    if not workspace_members.objects.get(workspace=commentt.task.project.workspace,user=request.user):
+        raise Http404("your not member of this workspace")
+    if request.method=="POST":
+        form=replytform(request.POST)
+        if form.is_valid():
+                new_reply=form.save(commit=False)
+                new_reply.user=request.user
+                new_reply.comment_replyed=commentt
+                new_reply.save()
+                for recipient in set([commentt.task.assign, commentt.task.create_by,commentt.user]):
+                    if recipient and recipient != request.user :
+                        notifaction.objects.create(
+                        recipient=recipient,
+                            message=f"{request.user.first_name} {request.user.last_name} add a reply on {commentt.task.title} task",
+                                notif_type="NC",
+                            target=new_reply
+                                )
+                    return redirect("workspace:taskdetail",commentt.task.id)
+    
+    form=replytform()
+    return render(request,"workspace/addreply.html",{"form":form,"comment":commentt})
+def deletecomment(request,pk):
+    coment=get_object_or_404(comment,id=pk,user=request.user)
+    task_id=coment.task.id
+    coment.delete()
+    return redirect("workspace:taskdetail",task_id)  
+def removereply(request,pk):
+        replyy=get_object_or_404(reply,id=pk,user=request.user)
+        task_id=replyy.comment_replyed.task.id
+        replyy.delete()
+        return redirect("workspace:taskdetail",task_id)

@@ -1,0 +1,89 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>reply</title>
+    <style>
+        .comment {
+            padding: 16px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .username {
+            font-size: 14px;
+            font-weight: 600;
+            color: #222;
+        }
+
+        .date {
+            font-size: 12px;
+            color: #999;
+            white-space: nowrap;
+        }
+
+        .comment-text {
+            font-size: 14px;
+            line-height: 2;
+            color: #555;
+            margin: 8px 0;
+        }
+
+        .reply {
+            margin: 14px 0 0 0;
+            margin-right: 24px;
+            padding-right: 14px;
+            border-right: 2px solid #d1d5db;
+            position: relative;
+        }
+
+        .reply::before {
+            content: "↳";
+            position: absolute;
+            right: -24px;
+            top: 0;
+            color: #999;
+            font-size: 17px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="comment">
+        <div class="comment-header">
+            <span class="username">{{comment.user.first_name}} {{comment.user.last_name}}</span>
+            <span class="date">{{comment.create_at}}</span>
+        </div>
+
+        <p class="comment-text">
+            {{comment.content}}
+        </p>
+        {% for reply in comment.replys.all %}
+        <div class="reply">
+            <div class="comment-header">
+                <span class="username">{{reply.user.first_name}} {{reply.user.last_name}}</span>
+                <span class="date">{{reply.create_at}}</span>
+            </div>
+
+            <p class="comment-text">
+                {{reply.content}}
+            </p>
+        </div>
+        {%endfor%}
+        <form method="post">
+            {%csrf_token%}
+            {{form}}
+            <button type="submit"> add reply</button>
+        </form>
+    </div>
+
+</body>
+
+</html>

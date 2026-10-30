@@ -40,6 +40,12 @@ path("editproject/<int:pk>",views.editproject,name="editproject"),
 path("removeproject/<int:pk>",views.removeproject,name="removeproject"),
 path("addtask/<int:pk>/",views.addtask,name="addtask"),
 path("removetask/<int:pk>/",views.deletetask,name="removetask"),
-path("changetaskstatus/<int:pk>/",views.changetaskstatus,name="changetaskstatus")
+path("changetaskstatus/<int:pk>/",views.changetaskstatus,name="changetaskstatus"),
+path("addcomment/<int:pk>/",views.addcomment,name="addcomment"),
+path("addreply/<int:pk>/",views.addreply,name="addreply"),
+path("removecomment/<int:pk>/",views.deletecomment,name="removecomment"),
+path("removereply/<int:pk>/",views.removereply,name="removereply")
+
+
 
 ]
